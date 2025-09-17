@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Rediscover Optimizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Rediscover Optimizer</h1>
+  </header>
+
+  <main>
+    <div id="calcArea">
+      <p>Calculator + Optimizer will load here.</p>
+      <button id="runOpt">Run Optimizer</button>
+      <pre id="output"></pre>
+    </div>
+  </main>
+
+  <footer>
+    Guild – <strong>Rediscover Alliance</strong> | Creator – <strong>SAGE</strong>
+  </footer>
+
+  <script src="scripts/optimizer.js"></script>
+</body>
+</html>
