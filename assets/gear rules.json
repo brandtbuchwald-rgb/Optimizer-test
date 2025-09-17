@@ -1,0 +1,85 @@
+{
+  "tiers": {
+    "Primal": { "normalLines": 3, "purple": false },
+    "Original": { "normalLines": 4, "purple": false },
+    "Chaos": { "normalLines": 4, "purple": true },
+    "Abyss": { "normalLines": 4, "purple": true }
+  },
+
+  "universalStats": [
+    "ATK SPD",
+    "Crit Chance",
+    "Evasion",
+    "ATK%",
+    "Crit DMG",
+    "Monster DMG",
+    "HP%",
+    "DEF%",
+    "Damage Reduction"
+  ],
+
+  "slots": {
+    "Helmet": {
+      "normal": "universalStats",
+      "purple": ["Boss DMG", "HP%"],
+      "duplicationAllowed": ["Boss DMG", "HP%"]
+    },
+    "Belt": {
+      "normal": "universalStats",
+      "purple": ["Boss DMG", "HP%"],
+      "duplicationAllowed": ["Boss DMG", "HP%"]
+    },
+    "Chest": {
+      "normal": "universalStats",
+      "purple": ["ATK%"],
+      "duplicationAllowed": ["ATK%"]
+    },
+    "Gloves": {
+      "normal": "universalStats",
+      "purple": ["ATK%"],
+      "duplicationAllowed": ["ATK%"]
+    },
+    "Boots": {
+      "normal": "universalStats",
+      "purple": ["ATK%"],
+      "duplicationAllowed": ["ATK%"]
+    },
+    "Ring": {
+      "normal": "universalStats",
+      "purple": ["Crit DMG"],
+      "duplicationAllowed": ["Crit DMG"]
+    },
+    "Necklace": {
+      "normal": "universalStats",
+      "purple": ["Crit DMG"],
+      "duplicationAllowed": ["Crit DMG"]
+    },
+    "Weapon": {
+      "normal": ["ATK%", "Crit DMG", "Monster DMG", "Cast Demon Lord", "Cast Evasion"],
+      "purple": ["Crit DMG +80 (DPS)", "HP% +52% (Tank)"],
+      "duplicationAllowed": []
+    }
+  },
+
+  "priorities": {
+    "DPS": [
+      "ATK SPD",
+      "Crit Chance",
+      "Evasion",
+      "ATK%",
+      "Crit DMG",
+      "Monster DMG",
+      "HP%",
+      "DEF%"
+    ],
+    "Tank": [
+      "ATK SPD",
+      "Evasion",
+      "Damage Reduction",
+      "HP%",
+      "DEF%",
+      "ATK%",
+      "Crit DMG"
+    ]
+  }
+}
