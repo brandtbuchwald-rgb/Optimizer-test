@@ -2,18 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Rediscover Optimizer</title>
+  <title>Rediscover ATK SPD Optimizer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background:#0c0f14; color:#e8ecf8; margin:0; }
+    header, footer { background:#121826; padding:10px; text-align:center; }
+    button { padding:8px 12px; margin:6px; border-radius:8px; border:1px solid #444; }
+    .card { background:#191f2a; padding:16px; margin:16px; border-radius:12px; }
+    pre { background:#111; padding:12px; border-radius:8px; overflow-x:auto; }
+  </style>
 </head>
 <body>
   <header>
-    <h1>Rediscover Optimizer</h1>
+    <h1>Rediscover ATK SPD Optimizer</h1>
   </header>
 
   <main>
-    <div id="calcArea">
-      <p>Calculator + Optimizer will load here.</p>
+    <!-- Calculator -->
+    <div class="card">
+      <h2>ATK SPD Calculator</h2>
+      <label>Class:</label>
+      <select id="cls">
+        <option value="Berserker">Berserker</option>
+        <option value="Paladin">Paladin</option>
+        <option value="Ranger">Ranger</option>
+        <option value="Sorcerer">Sorcerer</option>
+      </select>
+      <br><br>
+      <label>Weapon Type:</label>
+      <select id="weap">
+        <option value="Original">Original</option>
+        <option value="Primal">Primal</option>
+        <option value="Chaos">Chaos</option>
+        <option value="Abyss">Abyss</option>
+        <option value="PVP/Boss">PVP/Boss</option>
+      </select>
+      <br><br>
+      <button id="calcBtn">Recalculate</button>
+      <div id="calcResult"></div>
+    </div>
+
+    <!-- Optimizer -->
+    <div class="card">
+      <h2>Optimizer</h2>
       <button id="runOpt">Run Optimizer</button>
       <pre id="output"></pre>
     </div>
