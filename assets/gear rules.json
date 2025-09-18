@@ -6,6 +6,12 @@
     "Abyss": { "normalLines": 4, "purple": true }
   },
 
+  "capValues": {
+    "Crit Chance": { "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16 },
+    "Evasion":     { "Primal": 0.10, "Original": 0.10, "Chaos": 0.12, "Abyss": 0.14 },
+    "Damage Reduction": { "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16 }
+  },
+
   "universalStats": [
     "ATK SPD",
     "Crit Chance",
