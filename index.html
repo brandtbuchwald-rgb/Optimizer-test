@@ -62,35 +62,37 @@
 </select>
 <br><br>
 
-      <label>Weapon Tier:</label>
-      <select id="weap">
-        <option value="Original">Original</option>
-        <option value="Primal">Primal</option>
-        <option value="Chaos">Chaos</option>
-        <option value="Abyss">Abyss</option>
-        <option value="PVP/Boss">PVP/Boss</option>
-      </select>
+<!-- Secret Tech -->
+<label>Secret Tech:</label>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+  <div>
+    <span>ATK SPD</span><br>
+    <input id="secret" type="number" value="0" step="0.1"> %
+  </div>
+  <div>
+    <span>Crit Chance</span><br>
+    <input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %
+  </div>
+  <div>
+    <span>Evasion</span><br>
+    <input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %
+  </div>
+</div>
+<br><br>
 
-      <label>Gear Tier:</label>
-      <select id="gearTier">
-        <option value="Primal">Primal</option>
-        <option value="Original">Original</option>
-        <option value="Chaos">Chaos</option>
-        <option value="Abyss" selected>Abyss</option>
-      </select>
-
-      <label>Guild Buff (%):</label>
-      <input id="guild" type="number" value="5" step="0.1">
-
-      <label>Secret Tech (% ATK SPD generic):</label>
-      <input id="secret" type="number" value="10" step="0.1">
-
-      <label>Secret Tech Crit Chance (%):</label>
-      <input id="secretCrit" type="number" value="0" step="1" min="0" max="10">
-
-      <label>Secret Tech Evasion (%):</label>
-      <input id="secretEva" type="number" value="0" step="1" min="0" max="10">
-
+<!-- Guild Buffs -->
+<label>Guild Buffs:</label>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+  <div>
+    <span>ATK SPD</span><br>
+    <input id="guild" type="number" value="5" step="0.1"> %
+  </div>
+  <div>
+    <span>Crit Chance</span><br>
+    <input id="guildCrit" type="number" value="0" step="0.1"> %
+  </div>
+</div>
+<br><br>
       <label>Rune ATK SPD (%):</label>
       <input id="rune" type="number" value="0" step="0.1">
 
