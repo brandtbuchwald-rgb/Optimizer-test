@@ -66,10 +66,19 @@
       "purple": ["Crit DMG"],
       "duplicationAllowed": ["Crit DMG"]
     },
-    "Weapon": {
-      "normal": ["ATK%","Crit DMG","Monster DMG","Cast Demon Lord","Cast Evasion"],
-      "purple": ["Crit DMG +80 (DPS)","HP% +52% (Tank)"],
-      "duplicationAllowed": []
-    }
+   "Weapon": {
+  "normal": [
+    "ATK%",
+    "Crit DMG",
+    "Monster DMG",
+    "Cast Demon Lord",
+    "Cast Evasion"
+  ],
+  "purple": [
+    "Crit DMG +80 (DPS)",
+    "HP% +52% (Tank)"
+  ],
+  "duplicationAllowed": []
+}
   }
 }
