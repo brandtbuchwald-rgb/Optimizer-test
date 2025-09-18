@@ -190,14 +190,25 @@ async function init(){
     const runePct    = pct(document.getElementById('rune').value);
     const petPct     = pct(document.getElementById('pet').value);
     const quickPct   = pct(document.getElementById('quicken').value);
-    const charAtkPct = pct(document.getElementById('charAtk').value||0);
+    const charTypePct  = pct(document.getElementById("charType").value);
+const statColorPct = pct(document.getElementById("statColor").value);
     const fury       = document.getElementById('fury').checked;
 
     const state = currentState({
-      cls, weaponTier, furyChecked:fury, quickPct,
-      guildPct, secretAtkPct:secretAtk, runePct, petPct, charAtkPct,
-      includeGearRune:true
-    });
+  cls,
+  weaponTier,
+  furyChecked: fury,
+  quickPct,
+  guildPct,
+  secretAtkPct: secretAtk,
+  secretCritPct: secretCrit,
+  secretEvaPct: secretEva,
+  runePct,
+  petPct,
+  charTypePct,
+  statColorPct,
+  includeGearRune: true
+});
 
     // Output baseline speed info
     const lines = [];
