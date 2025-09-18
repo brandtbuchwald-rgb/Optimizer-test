@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Rediscover ATK SPD Optimizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body{background:#0c0f14;color:#e8ecf8;font-family:system-ui,Inter,sans-serif;margin:0}
+  header{padding:12px;background:#3b2e13;color:#fff}
+  h1{margin:0;font-size:20px}
+  main{max-width:800px;margin:12px auto;padding:0 12px}
+  .card{background:#121826;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin:12px 0}
+  label{font-weight:700;color:#a8b0c2}
+  select,input{width:100%;padding:6px;margin:4px 0;border-radius:6px;border:1px solid #333;background:#1c2438;color:#e8ecf8}
+  button{margin-top:10px;padding:8px 12px;font-weight:700;border:1px solid #555;background:#2a344d;color:#fff;border-radius:8px;cursor:pointer}
+  pre{white-space:pre-wrap;background:#0c0f14;padding:8px;border-radius:8px}
+  footer{padding:10px;text-align:center;background:#000;color:#fff;font-size:12px}
+</style>
+</head>
+
 <body>
   <header>
     <h1>Rediscover ATK SPD Optimizer</h1>
@@ -7,7 +27,6 @@
     <!-- Calculator -->
     <div class="card">
       <h2>ATK SPD Calculator</h2>
-
       <label>Class:</label>
       <select id="cls">
         <option value="Berserker">Berserker</option>
@@ -15,14 +34,12 @@
         <option value="Ranger">Ranger</option>
         <option value="Sorcerer">Sorcerer</option>
       </select>
-      <br><br>
 
       <label>Focus:</label>
       <select id="focus">
         <option value="DPS">DPS</option>
         <option value="Tank">Tank</option>
       </select>
-      <br><br>
 
       <label>Weapon Tier:</label>
       <select id="weap">
@@ -32,7 +49,6 @@
         <option value="Abyss">Abyss</option>
         <option value="PVP/Boss">PVP/Boss</option>
       </select>
-      <br><br>
 
       <label>Gear Tier:</label>
       <select id="gearTier">
@@ -41,27 +57,21 @@
         <option value="Chaos">Chaos</option>
         <option value="Abyss" selected>Abyss</option>
       </select>
-      <br><br>
 
       <label>Guild Buff (%):</label>
-      <input id="guild" type="number" value="5" step="0.1"> %
-      <br><br>
+      <input id="guild" type="number" value="5" step="0.1">
 
       <label>Secret Tech (% ATK SPD generic):</label>
-      <input id="secret" type="number" value="10" step="0.1"> %
-      <br><br>
+      <input id="secret" type="number" value="10" step="0.1">
 
       <label>Secret Tech Crit Chance (%):</label>
-      <input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %
-      <br><br>
+      <input id="secretCrit" type="number" value="0" step="1" min="0" max="10">
 
       <label>Secret Tech Evasion (%):</label>
-      <input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %
-      <br><br>
+      <input id="secretEva" type="number" value="0" step="1" min="0" max="10">
 
       <label>Rune ATK SPD (%):</label>
-      <input id="rune" type="number" value="0" step="0.1"> %
-      <br><br>
+      <input id="rune" type="number" value="0" step="0.1">
 
       <label>Pet Gear:</label>
       <select id="pet">
@@ -70,7 +80,6 @@
         <option value="9">A (9%)</option>
         <option value="12">S (12%)</option>
       </select>
-      <br><br>
 
       <label>Quicken:</label>
       <select id="quicken">
@@ -78,18 +87,17 @@
         <option value="1">Lv.1 (+1%)</option>
         <option value="2">Lv.2 (+2%)</option>
       </select>
-      <br><br>
-<label>Characteristic (ATK SPD):</label>
-<select id="charAtk">
-  <option value="0">White (0%)</option>
-  <option value="10">Blue (10%)</option>
-  <option value="20">Orange (20%)</option>
-  <option value="30">Purple (30%)</option>
-</select>
-<br><br>
+
+      <label>Characteristic (ATK SPD):</label>
+      <select id="charAtk">
+        <option value="0">White (0%)</option>
+        <option value="10">Blue (10%)</option>
+        <option value="20">Orange (20%)</option>
+        <option value="30">Purple (30%)</option>
+      </select>
+
       <label>Berserker Fury Lv.10:</label>
       <input id="fury" type="checkbox">
-      <br><br>
 
       <button id="calcBtn">Recalculate</button>
       <div id="calcResult"></div>
@@ -100,6 +108,8 @@
       <h2>Optimizer</h2>
       <button id="runOpt">Run Optimizer</button>
       <pre id="output"></pre>
+      <h3>Final Stat Breakdown</h3>
+      <div id="statBreakdown"></div>
     </div>
   </main>
 
@@ -107,5 +117,82 @@
     Guild – <strong>Rediscover Alliance</strong> | Creator – <strong>SAGE</strong>
   </footer>
 
-  <script src="scripts/optimizer.js"></script>
+<script>
+const gearRules = {
+  caps:{crit:0.50,eva:0.40,dr:0.88},
+  values:{
+    crit:{Primal:0.12,Original:0.12,Chaos:0.14,Abyss:0.16},
+    eva:{Primal:0.10,Original:0.10,Chaos:0.12,Abyss:0.14},
+    dr:{Primal:0.12,Original:0.12,Chaos:0.14,Abyss:0.16}
+  }
+};
+const baseOriginal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePrimal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePvP={"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
+const base={"Original":baseOriginal,"Primal":basePrimal,"Chaos":baseOriginal,"Abyss":basePrimal,"PVP/Boss":basePvP};
+const TARGET_FINAL=0.25;
+
+function currentState(){
+  const cls=clsEl.value, weap=weapEl.value, baseSpd=base[weap][cls];
+  const guild=parseFloat(guildEl.value||0)/100;
+  const secret=parseFloat(secretEl.value||0)/100;
+  const rune=parseFloat(runeEl.value||0)/100;
+  const pet=parseFloat(petEl.value||0)/100;
+  const quick=parseFloat(quickenEl.value||0)/100;
+  const charAtk=parseFloat(charAtkEl.value||0)/100;
+  const fury=(furyEl.checked&&cls==="Berserker")?0.25:1.0;
+  const buffsBase=guild+secret+charAtk;
+  const buffsAll=buffsBase+rune+pet;
+  const denom=Math.max(baseSpd*(1-quick)*fury,1e-9);
+  const requiredTotal=1-(TARGET_FINAL/denom);
+  const requiredRemaining=Math.max(0,requiredTotal-buffsAll);
+  const finalRaw=baseSpd*(1-buffsAll)*(1-quick)*fury;
+  const finalSpd=Math.max(finalRaw,TARGET_FINAL);
+  return {cls,weap,baseSpd,guild,secret,rune,pet,quick,charAtk,fury,buffsBase,buffsAll,requiredTotal,requiredRemaining,finalSpd};
+}
+
+function recalc(){
+  const s=currentState();
+  calcResult.textContent=`Progress ${(s.buffsAll/s.requiredTotal*100).toFixed(1)}% | Required Remaining ${(s.requiredRemaining*100).toFixed(2)}% | Final Spd ${s.finalSpd.toFixed(2)}`;
+}
+
+function runOpt(){
+  const s=currentState();
+  let atkspd=s.guild+s.secret+s.charAtk+s.rune+s.pet+s.quick+(s.cls==="Berserker"&&s.fury===0.25?0.25:0);
+  // Crit/Eva from secret
+  let crit=parseFloat(secretCritEl.value||0)/100;
+  let eva=parseFloat(secretEvaEl.value||0)/100;
+  if(crit>gearRules.caps.crit)crit=gearRules.caps.crit;
+  if(eva>gearRules.caps.eva)eva=gearRules.caps.eva;
+  let dr=0;
+  if(dr>gearRules.caps.dr)dr=gearRules.caps.dr;
+  output.textContent=`ATK SPD: ${(atkspd*100).toFixed(1)}%
+Crit Chance: ${(crit*100).toFixed(1)}% / cap ${(gearRules.caps.crit*100)}%
+Evasion: ${(eva*100).toFixed(1)}% / cap ${(gearRules.caps.eva*100)}%
+Damage Reduction: ${(dr*100).toFixed(1)}% / cap ${(gearRules.caps.dr*100)}%`;
+  statBreakdown.textContent=output.textContent;
+}
+
+// wire
+const clsEl=document.getElementById("cls");
+const focusEl=document.getElementById("focus");
+const weapEl=document.getElementById("weap");
+const gearTierEl=document.getElementById("gearTier");
+const guildEl=document.getElementById("guild");
+const secretEl=document.getElementById("secret");
+const secretCritEl=document.getElementById("secretCrit");
+const secretEvaEl=document.getElementById("secretEva");
+const runeEl=document.getElementById("rune");
+const petEl=document.getElementById("pet");
+const quickenEl=document.getElementById("quicken");
+const charAtkEl=document.getElementById("charAtk");
+const furyEl=document.getElementById("fury");
+const calcResult=document.getElementById("calcResult");
+const output=document.getElementById("output");
+const statBreakdown=document.getElementById("statBreakdown");
+
+document.getElementById("calcBtn").addEventListener("click",recalc);
+document.getElementById("runOpt").addEventListener("click",runOpt);
+</script>
 </body>
+</html>
