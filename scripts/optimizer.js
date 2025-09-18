@@ -14,7 +14,7 @@ const TARGET_FINAL=0.25;
 const SET_VAL={Abyss:0.16,Chaos:0.14,Original:0.12,Primal:0.12};
 const MAX_EQUIP_PIECES=8;
 
-// Caps
+// Caps (gear + rune only)
 const CRIT_CAP = 0.50;   // 50%
 const EVA_CAP  = 0.40;   // 40%
 const DR_CAP   = 1.00;   // 100%
@@ -73,14 +73,12 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
   const rec=[];
   let capUsed=false;
 
-  // Priority templates
   const priorities = focus==="DPS"
     ? ["CapStat","ATK%","Crit DMG","Monster DMG"]
     : ["CapStat","HP%","DEF%","Damage Reduction","ATK%"];
 
   for(const stat of priorities){
     let chosen = stat;
-
     if(stat==="CapStat"){
       for(const s of ["ATK SPD","Crit Chance","Evasion"]){
         if(validNormal.includes(s)){
@@ -96,8 +94,6 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
 
     if(!chosen || !validNormal.includes(chosen)) continue;
     if(chosen==="Damage Reduction" && drSoFar>=DR_CAP) continue;
-
-    // Exclude cap stats from weapons
     if(slot==="Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(chosen)) continue;
 
     rec.push(chosen);
@@ -106,7 +102,6 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
     if(rec.length>=maxNormal && !rules.tiers[tier].purple) break;
   }
 
-  // Purple slot logic for Chaos/Abyss
   if(rules.tiers[tier].purple && slotRules.purple.length){
     if(focus==="DPS"){
       const purplePick = slotRules.purple.includes("Crit DMG")
@@ -130,7 +125,6 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
 async function init(){
   const rules=await loadGearRules();
 
-  // Calculator
   document.getElementById('calcBtn').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
@@ -146,7 +140,6 @@ async function init(){
       `Base Speed: ${state.baseSpd}\nRequired Remaining: ${(state.requiredRemaining*100).toFixed(2)}%\nFinal Speed: ${state.finalSpd.toFixed(2)}`;
   });
 
-  // Optimizer
   document.getElementById('runOpt').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
@@ -154,6 +147,8 @@ async function init(){
     const tier=document.getElementById('gearTier').value;
     const guild=parseFloat(document.getElementById('guild').value||0)/100;
     const secret=parseFloat(document.getElementById('secret').value||0)/100;
+    const secretCrit=parseFloat(document.getElementById('secretCrit').value||0)/100;
+    const secretEva=parseFloat(document.getElementById('secretEva').value||0)/100;
     const rune=parseFloat(document.getElementById('rune').value||0)/100;
     const petPct=parseFloat(document.getElementById('pet').value||0)/100;
     const quick=parseFloat(document.getElementById('quicken').value||0)/100;
@@ -172,7 +167,6 @@ async function init(){
       out.push("No valid combos found (with quicken ≤2).");
     }
 
-    // Slot recs
     out.push("\n--- Slot Recommendations ---");
     out.push(`${focus} priorities (${tier}):`);
     let critSoFar=0, evaSoFar=0, drSoFar=0;
@@ -184,6 +178,15 @@ async function init(){
       if(rec.includes("Damage Reduction")) drSoFar+=vals["Damage Reduction"][tier];
       out.push(`  ${slot}: ${rec.join(", ")}`);
     }
+
+    // Apply secret tech AFTER gear+rune caps
+    critSoFar += secretCrit;
+    evaSoFar  += secretEva;
+
+    out.push("");
+    out.push(`Final Crit Chance (incl. secret): ${(critSoFar*100).toFixed(1)}%`);
+    out.push(`Final Evasion (incl. secret): ${(evaSoFar*100).toFixed(1)}%`);
+    out.push(`Final Damage Reduction: ${(drSoFar*100).toFixed(1)}%`);
 
     document.getElementById('output').textContent=out.join('\n');
   });
