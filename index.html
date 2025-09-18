@@ -1,118 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Rediscover ATK SPD Optimizer</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Rediscover ATK SPD Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg:#0c0f14; --bg2:#121826; --ink:#e8ecf8;
+      --muted:#a8b0c2; --accent:#c6a15b; --accent2:#fcd34d;
+      --border:rgba(255,255,255,0.08);
+    }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family: Inter,sans-serif; }
+    header { padding:16px; background:var(--bg2); }
+    main { max-width:1000px; margin:18px auto; padding:0 16px 120px; }
+    .card { background:rgba(255,255,255,0.06); border:1px solid var(--border);
+      border-radius:12px; margin:12px 0; }
+    .card>.inner { padding:16px; }
+    h1 { margin:0; font-size:20px; }
+    h2 { font-size:15px; margin:0 0 12px; text-transform:uppercase; color:var(--muted); }
+    .gear-card h2 { color:var(--accent); }
+    .seg button { margin:2px; }
+  </style>
 </head>
-
 <body>
-  <header>
-    <h1>Rediscover ATK SPD Optimizer</h1>
-  </header>
+<header>
+  <h1>Rediscover ATK SPD Calculator</h1>
+</header>
 
-  <main>
-    <!-- Calculator -->
-    <div class="card">
-      <h2>ATK SPD Calculator</h2>
-
-      <label>Class:</label>
+<main>
+  <!-- Calculator -->
+  <div class="card"><div class="inner">
+    <h2>Calculator</h2>
+    <div>
+      <label>Class</label>
       <select id="cls">
         <option value="Berserker">Berserker</option>
         <option value="Paladin">Paladin</option>
         <option value="Ranger">Ranger</option>
-        <option value="Sorcerer">Sorcerer</option>
+        <option value="Sorcerer" selected>Sorcerer</option>
       </select>
-
-      <label>Focus:</label>
-      <select id="focus">
-        <option value="DPS">DPS</option>
-        <option value="Tank">Tank</option>
-      </select>
-
-      <label>Weapon Tier:</label>
+    </div>
+    <div>
+      <label>Weapon</label>
       <select id="weap">
-        <option value="Original">Original</option>
+        <option value="Original" selected>Original</option>
         <option value="Primal">Primal</option>
         <option value="Chaos">Chaos</option>
         <option value="Abyss">Abyss</option>
         <option value="PVP/Boss">PVP/Boss</option>
       </select>
-
-      <label>Gear Tier:</label>
-      <select id="gearTier">
-        <option value="Primal">Primal</option>
-        <option value="Original">Original</option>
-        <option value="Chaos">Chaos</option>
-        <option value="Abyss" selected>Abyss</option>
-      </select>
-
-      <label>Characteristic:</label>
-      <select id="charType">
-        <option value="0">None (0%)</option>
+    </div>
+    <div>
+      <label>Characteristic</label>
+      <select id="char">
+        <option value="0">None</option>
         <option value="7">Heroic (+7%)</option>
         <option value="10">Swift (+10%)</option>
       </select>
-
-      <label>Stat Colour (ATK SPD):</label>
-      <select id="statColor">
-        <option value="0">White (0%)</option>
-        <option value="10">Blue (10%)</option>
-        <option value="20">Orange (20%)</option>
-        <option value="30">Purple (30%)</option>
+    </div>
+    <div>
+      <label>Atk SPD Colour</label>
+      <select id="col">
+        <option value="0">Normal</option>
+        <option value="10">Blue (+10%)</option>
+        <option value="20">Orange (+20%)</option>
+        <option value="30" selected>Purple (+30%)</option>
       </select>
-
-      <label>Secret Tech:</label>
-      <div class="row">
-        <div><span>ATK SPD</span><br><input id="secret" type="number" value="0" step="0.1"> %</div>
-        <div><span>Crit Chance</span><br><input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %</div>
-        <div><span>Evasion</span><br><input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %</div>
-      </div>
-
-      <label>Guild Buffs:</label>
-      <div class="row">
-        <div><span>ATK SPD</span><br><input id="guild" type="number" value="5" step="0.1"> %</div>
-        <div><span>Crit Chance</span><br><input id="guildCrit" type="number" value="0" step="0.1"> %</div>
-      </div>
-
-      <label>Rune ATK SPD (%):</label>
-      <input id="rune" type="number" value="0" step="0.1">
-
-      <label>Pet Gear:</label>
+    </div>
+    <div>
+      <label>Guild Buff</label>
+      <input id="guild" type="number" value="5">% 
+    </div>
+    <div>
+      <label>Secret Tech</label>
+      <input id="secret" type="number" value="10">%
+    </div>
+    <div>
+      <label>Equipment ATK SPD</label>
+      <input id="equip" type="number" value="0">%
+    </div>
+    <div>
+      <label>Rune ATK SPD</label>
+      <input id="rune" type="number" value="0">%
+    </div>
+    <div>
+      <label>Pet Gear</label>
       <select id="pet">
         <option value="0">None</option>
         <option value="6">B (6%)</option>
         <option value="9">A (9%)</option>
         <option value="12">S (12%)</option>
       </select>
-
-      <label>Quicken:</label>
+    </div>
+    <div>
+      <label>Quicken</label>
       <select id="quicken">
         <option value="0">None</option>
         <option value="1">Lv.1 (+1%)</option>
         <option value="2">Lv.2 (+2%)</option>
       </select>
-
-      <label>Berserker Fury Lv.10:</label>
-      <input id="fury" type="checkbox">
-
-      <button id="calcBtn">Recalculate</button>
-      <pre id="calcResult"></pre>
     </div>
+  </div></div>
 
-    <!-- Optimizer -->
-    <div class="card">
-      <h2>Optimizer</h2>
-      <button id="runOpt">Run Optimizer</button>
-      <pre id="output"></pre>
-    </div>
-  </main>
+  <!-- Optimizer -->
+  <div class="card"><div class="inner">
+    <h2>Optimizer</h2>
+    <button class="btn" id="applyBest">Apply Optimal</button>
+    <div id="bestLine">—</div>
+    <div id="bestWaste">—</div>
+    <h2>Alternates</h2>
+    <ul id="altList"></ul>
+  </div></div>
+</main>
 
-  <footer>
-    Guild – <strong>Rediscover Alliance</strong> | Creator – <strong>SAGE</strong>
-  </footer>
+<footer>
+  Guild – <strong>Rediscover Alliance</strong> | Creator – <strong>SAGE</strong>
+</footer>
 
-<script src="scripts/optimizer.js"></script>
+<script>
+// === Calculator + Optimizer logic ===
+const baseOriginal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePrimal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePvP={"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
+const base={"Original":baseOriginal,"Primal":basePrimal,"Chaos":baseOriginal,"Abyss":basePrimal,"PVP/Boss":basePvP};
+const TARGET_FINAL=0.25;
+const SET_VAL={Abyss:0.16,Chaos:0.14,Original:0.12,Primal:0.12};
+const MAX_EQUIP_PIECES=8;
+
+const els=(ids=>ids.reduce((o,id)=>(o[id]=document.getElementById(id),o),{}))(
+  ["cls","weap","char","col","guild","secret","equip","rune","quicken","pet",
+   "bestLine","bestWaste","altList","applyBest"]
+);
+
+const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
+const pctInput=id=>(parseFloat(els[id].value||0)/100);
+const pctSelect=id=>(parseFloat(els[id].value||0)/100);
+
+function currentState(includeEquipRune=true){
+  const cls=els.cls.value, weap=els.weap.value, baseSpd=base[weap][cls];
+  const char=pctSelect('char'), color=pctSelect('col'), guild=pctInput('guild'), secret=pctInput('secret');
+  const equip=includeEquipRune?pctInput('equip'):0, rune=includeEquipRune?pctInput('rune'):0, petPct=pctSelect('pet');
+  const quick=(parseFloat(els.quicken.value||0)/100);
+  const buffsBase=char+color+guild+secret;
+  const buffsAll=buffsBase+equip+rune+petPct;
+  const denom=Math.max(baseSpd*(1-quick),1e-9);
+  const requiredTotal=1-(TARGET_FINAL/denom);
+  const requiredRemaining=Math.max(0, requiredTotal-buffsAll);
+  const finalRaw=baseSpd*(1-buffsAll)*(1-quick);
+  const finalSpd=Math.max(finalRaw, TARGET_FINAL);
+  return {cls,weap,baseSpd,buffsBase,buffsAll,requiredTotal,requiredRemaining,finalSpd};
+}
+
+function planCombos(){
+  const s=currentState(false); const chosen=els.weap.value; const pieceVal=SET_VAL[chosen]; if(!pieceVal) return [];
+  const denom0=Math.max(s.baseSpd,1e-9);
+  const requiredTotal0=1-(TARGET_FINAL/denom0);
+  const need=Math.max(0, requiredTotal0 - s.buffsBase);
+  const pets=[{name:'S',v:0.12},{name:'A',v:0.09},{name:'B',v:0.06},{name:'None',v:0.00}];
+  const results=[];
+  for(let pieces=0; pieces<=MAX_EQUIP_PIECES; pieces++){
+    const equipPct=pieces*pieceVal;
+    for(let qLevel=0; qLevel<=2; qLevel++){
+      const q=qLevel/100;
+      for(let runePct=0.06; runePct>=-1e-9; runePct-=0.01){
+        const rFix=Math.max(0,runePct);
+        for(const pet of pets){
+          const coverage=equipPct + rFix + pet.v + q;
+          if(coverage + 1e-9 >= need){
+            const waste=coverage-need;
+            results.push({set:chosen,quickLevel:qLevel,pieces,equipPct,rune:Math.round(rFix*100),pet:pet.name,total:coverage,waste});
+            break;
+          }
+        }
+      }
+    }
+  }
+  results.sort((a,b)=>(a.pieces-b.pieces)||(a.quickLevel-b.quickLevel)||(b.rune-a.rune)||(a.waste-b.waste));
+  return results.slice(0,7);
+}
+
+const lineOf=r=>`${r.set}: ${r.pieces} pcs (${(r.equipPct*100).toFixed(2)}%) | Rune ${r.rune}% | Pet ${r.pet} | Quicken Lv.${r.quickLevel}`;
+
+function recalc(){
+  let plans=[]; try{plans=planCombos();}catch(e){console.error(e); plans=[];}
+  if(plans.length){
+    els.bestLine.textContent=lineOf(plans[0])+` → covers ${(plans[0].total*100).toFixed(2)}%`;
+    els.bestWaste.textContent=`Waste overlap: ${(plans[0].waste*100).toFixed(2)}%`;
+    els.altList.innerHTML=plans.slice(1,3).map(r=>`<li>${lineOf(r)} — waste ${(r.waste*100).toFixed(2)}%</li>`).join('');
+  } else {
+    els.bestLine.textContent='No valid combo';
+    els.bestWaste.textContent='—';
+    els.altList.innerHTML='';
+  }
+}
+
+function applyOptimal(){
+  const plans=planCombos(); if(!plans.length){alert('No optimal combo'); return;}
+  els.equip.value=(plans[0].equipPct*100).toFixed(2);
+  els.rune.value=String(plans[0].rune);
+  const petMap={'None':'0','B':'6','A':'9','S':'12'};
+  els.pet.value=petMap[plans[0].pet]||'0';
+  els.quicken.value=String(plans[0].quickLevel);
+  recalc();
+}
+els.applyBest.addEventListener('click', applyOptimal);
+
+['input','change','click'].forEach(evt=>
+  document.addEventListener(evt, e=>{
+    if(e.target.matches('input, select, button')) recalc();
+  })
+);
+recalc();
+</script>
+
+<!-- Gear layout logic -->
+<script src="assets/gearOptimizer.js"></script>
+<script>
+  function renderGearSetFromUI(){
+    const tier = els.weap.value;
+    const focus = 'DPS'; // you can wire a DPS/Tank toggle later
+    document.querySelectorAll('.gear-card').forEach(el=>el.remove());
+    renderGearSet(tier, focus);
+  }
+  renderGearSetFromUI();
+</script>
 </body>
 </html>
