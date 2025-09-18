@@ -1,15 +1,21 @@
 {
   "tiers": {
-    "Primal": { "normalLines": 3, "purple": false },
+    "Primal":   { "normalLines": 3, "purple": false },
     "Original": { "normalLines": 4, "purple": false },
-    "Chaos": { "normalLines": 4, "purple": true },
-    "Abyss": { "normalLines": 4, "purple": true }
+    "Chaos":    { "normalLines": 4, "purple": true },
+    "Abyss":    { "normalLines": 4, "purple": true }
   },
 
   "capValues": {
-    "Crit Chance": { "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16 },
-    "Evasion":     { "Primal": 0.10, "Original": 0.10, "Chaos": 0.12, "Abyss": 0.14 },
-    "Damage Reduction": { "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16 }
+    "Crit Chance": {
+      "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16
+    },
+    "Evasion": {
+      "Primal": 0.10, "Original": 0.10, "Chaos": 0.12, "Abyss": 0.14
+    },
+    "Damage Reduction": {
+      "Primal": 0.12, "Original": 0.12, "Chaos": 0.14, "Abyss": 0.16
+    }
   },
 
   "universalStats": [
@@ -27,13 +33,13 @@
   "slots": {
     "Helmet": {
       "normal": "universalStats",
-      "purple": ["Boss DMG", "HP%"],
-      "duplicationAllowed": ["Boss DMG", "HP%"]
+      "purple": ["Boss DMG","HP%"],
+      "duplicationAllowed": ["Boss DMG","HP%"]
     },
     "Belt": {
       "normal": "universalStats",
-      "purple": ["Boss DMG", "HP%"],
-      "duplicationAllowed": ["Boss DMG", "HP%"]
+      "purple": ["Boss DMG","HP%"],
+      "duplicationAllowed": ["Boss DMG","HP%"]
     },
     "Chest": {
       "normal": "universalStats",
@@ -61,31 +67,9 @@
       "duplicationAllowed": ["Crit DMG"]
     },
     "Weapon": {
-      "normal": ["ATK%", "Crit DMG", "Monster DMG", "Cast Demon Lord", "Cast Evasion"],
-      "purple": ["Crit DMG +80 (DPS)", "HP% +52% (Tank)"],
+      "normal": ["ATK%","Crit DMG","Monster DMG","Cast Demon Lord","Cast Evasion"],
+      "purple": ["Crit DMG +80 (DPS)","HP% +52% (Tank)"],
       "duplicationAllowed": []
     }
-  },
-
-  "priorities": {
-    "DPS": [
-      "ATK SPD",
-      "Crit Chance",
-      "Evasion",
-      "ATK%",
-      "Crit DMG",
-      "Monster DMG",
-      "HP%",
-      "DEF%"
-    ],
-    "Tank": [
-      "ATK SPD",
-      "Evasion",
-      "Damage Reduction",
-      "HP%",
-      "DEF%",
-      "ATK%",
-      "Crit DMG"
-    ]
   }
 }
