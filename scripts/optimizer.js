@@ -228,47 +228,46 @@ const statColorPct = pct(document.getElementById("statColor").value);
     document.getElementById('calcResult').textContent = lines.join('\n');
   });
 
-  // Optimizer button → combos + slot recommendations + capped totals
   document.getElementById('runOpt').addEventListener('click',()=>{
-    const cls        = document.getElementById('cls').value;
-    const focus      = document.getElementById('focus').value;
-    const weaponTier = document.getElementById('weap').value;
-    const gearTier   = document.getElementById('gearTier').value;
+  const cls        = document.getElementById('cls').value;
+  const focus      = document.getElementById('focus').value;
+  const weaponTier = document.getElementById('weap').value;
+  const gearTier   = document.getElementById('gearTier').value;
 
-    const guildPct   = pct(document.getElementById('guild').value);
-    const secretAtk  = pct(document.getElementById('secret').value);
-    const secretCrit = pct(document.getElementById('secretCrit').value);
-    const secretEva  = pct(document.getElementById('secretEva').value);
-    const runePct    = pct(document.getElementById('rune').value);
-    const petPct     = pct(document.getElementById('pet').value);
-    const quickPct   = pct(document.getElementById('quicken').value);
-    const charAtkPct = pct(document.getElementById('charAtk').value||0);
-    const fury       = document.getElementById('fury').checked;
+  const guildPct   = pct(document.getElementById('guild').value);
+  const secretAtk  = pct(document.getElementById('secret').value);
+  const secretCrit = pct(document.getElementById('secretCrit').value);
+  const secretEva  = pct(document.getElementById('secretEva').value);
+  const runePct    = pct(document.getElementById('rune').value);
+  const petPct     = pct(document.getElementById('pet').value);
+  const quickPct   = pct(document.getElementById('quicken').value);
+  const charTypePct  = pct(document.getElementById('charType').value);
+  const statColorPct = pct(document.getElementById('statColor').value);
+  const fury       = document.getElementById('fury').checked;
 
-    // State WITHOUT gear/rune baked into non-gear (we pass includeGearRune:false)
-    const charTypePct  = pct(document.getElementById("charType").value);
-const statColorPct = pct(document.getElementById("statColor").value);
+  // State WITHOUT gear/rune baked in
+  const s0 = currentState({
+    cls, weaponTier, furyChecked:fury, quickPct,
+    guildPct, secretAtkPct:secretAtk, runePct:0, petPct,
+    charTypePct, statColorPct,
+    includeGearRune:false
+  });
 
-const s0 = currentState({
-  cls, weaponTier, furyChecked:fury, quickPct,
-  guildPct, secretAtkPct:secretAtk, runePct:0, petPct,
-  charTypePct, statColorPct,
-  includeGearRune:false
-});
+  const combos = planCombos(cls, weaponTier, gearTier, s0.nonGearBuffs, s0.furyMul);
+  const out = [];
+
+  if(combos.length){
+    out.push("Best Combo Suggestions:");
+    combos.forEach(c=>{
+      out.push(`${c.set}: ${c.pieces} pcs (${(c.equipPct*100).toFixed(2)}%) | Rune ${c.rune}% | Pet ${c.pet} | Quicken Lv.${c.quickLevel} → covers ${(c.total*100).toFixed(2)}% (waste ${(c.waste*100).toFixed(2)}%)`);
     });
+  } else {
+    out.push("No valid combos found (with quicken ≤2).");
+  }
 
-    const combos = planCombos(cls, weaponTier, gearTier, s0.nonGearBuffs, s0.furyMul);
-    const out = [];
-
-    if(combos.length){
-      out.push("Best Combo Suggestions:");
-      combos.forEach(c=>{
-        out.push(`${c.set}: ${c.pieces} pcs (${(c.equipPct*100).toFixed(2)}%) | Rune ${c.rune}% | Pet ${c.pet} | Quicken Lv.${c.quickLevel} → covers ${(c.total*100).toFixed(2)}% (waste ${(c.waste*100).toFixed(2)}%)`);
-      });
-    } else {
-      out.push("No valid combos found (with quicken ≤2).");
-    }
-
+  // … rest of your slot recommendations and stat totals …
+  document.getElementById('output').textContent = out.join('\n');
+});
     // Slot recommendations + gear+rune capped totals
     out.push("\n--- Slot Recommendations ---");
     out.push(`${focus} priorities (${gearTier}):`);
