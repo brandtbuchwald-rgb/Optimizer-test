@@ -1,94 +1,146 @@
-// === Load Gear Rules ===
+// ==========================
+// Rediscover Optimizer (full)
+// ==========================
+
+// ---- Load rules ----
 async function loadGearRules() {
   const res = await fetch('assets/gearRules.json');
   return await res.json();
 }
 
-// === ATK SPD Calculator Core ===
-const baseOriginal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
-const basePrimal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
-const basePvP={"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
-const base={"Original":baseOriginal,"Primal":basePrimal,"Chaos":baseOriginal,"Abyss":basePrimal,"PVP/Boss":basePvP};
+// ---- Class base speeds ----
+const baseOriginal = {"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePrimal   = {"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
+const basePvP      = {"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
 
-const TARGET_FINAL=0.25;
-const SET_VAL={Abyss:0.16,Chaos:0.14,Original:0.12,Primal:0.12};
-const MAX_EQUIP_PIECES=8;
+const baseByWeapon = {
+  "Original": baseOriginal,
+  "Primal":   basePrimal,
+  "Chaos":    baseOriginal, // if Chaos/Primal share base, keep this mapping
+  "Abyss":    basePrimal,
+  "PVP/Boss": basePvP
+};
 
-// Caps (gear + rune only)
-const CRIT_CAP = 0.50;   // 50%
-const EVA_CAP  = 0.40;   // 40%
-const DR_CAP   = 1.00;   // 100%
+// ---- Targets and per-piece atk spd line values by gear tier ----
+const TARGET_FINAL = 0.25;
+const SET_VAL = { Abyss:0.16, Chaos:0.14, Original:0.12, Primal:0.12 };
+const MAX_EQUIP_PIECES = 8;
 
-// === Calculator state ===
-function currentState(cls, weap, fury, quick, guild, secret, rune, petPct){
-  const baseSpd=base[weap][cls];
-  const buffsBase=(guild+secret);
-  const denom=Math.max(baseSpd*(1-quick)*(fury && cls==='Berserker'?0.25:1.0),1e-9);
-  const requiredTotal=1-(TARGET_FINAL/denom);
-  const buffsAll=buffsBase + rune + petPct;
-  const requiredRemaining=Math.max(0, requiredTotal-buffsAll);
-  const finalRaw=baseSpd*(1-buffsAll)*(1-quick)*(fury && cls==='Berserker'?0.25:1.0);
-  const finalSpd=Math.max(finalRaw,TARGET_FINAL);
-  return {baseSpd,requiredRemaining,finalSpd,buffsBase};
+// ---- Caps (gear + rune only) ----
+const CRIT_CAP = 0.50;  // 50%
+const EVA_CAP  = 0.40;  // 40%
+const DR_CAP   = 1.00;  // 100%
+
+// ---- Utility ----
+const clamp = (x,min,max)=>Math.max(min,Math.min(max,x));
+const pct  = v => (parseFloat(v||0)/100);
+
+// ---- Core state math (includes non-gear buffs, optional gear/rune) ----
+function currentState(params){
+  const {
+    cls, weaponTier, furyChecked, quickPct,
+    guildPct, secretAtkPct, runePct, petPct, charAtkPct,
+    includeGearRune=true, // when false, exclude runePct (we separately simulate) and any “equip” from UI
+  } = params;
+
+  const baseSpd = baseByWeapon[weaponTier][cls];
+
+  // Non-gear buffs that do NOT count toward gear+rune caps
+  const nonGearBuffs = (guildPct + secretAtkPct + charAtkPct);
+
+  // Things we fold into coverage for the speed formula
+  const rune = includeGearRune ? runePct : 0;
+  const pet  = petPct;
+  const furyMul = (furyChecked && cls === "Berserker") ? 0.25 : 1.0;
+
+  const denom = Math.max(baseSpd * (1 - quickPct) * furyMul, 1e-9);
+  const requiredTotal = 1 - (TARGET_FINAL / denom);
+  const buffsAll = nonGearBuffs + rune + pet; // “always-on” non-gear + rune + pet
+  const requiredRemaining = Math.max(0, requiredTotal - buffsAll);
+
+  const finalRaw = baseSpd * (1 - buffsAll) * (1 - quickPct) * furyMul;
+  const finalSpd = Math.max(finalRaw, TARGET_FINAL);
+
+  return { baseSpd, requiredTotal, requiredRemaining, finalSpd, nonGearBuffs, furyMul };
 }
 
-// === Optimizer combos ===
-function planCombos(cls,weap,buffsBase,fury){
-  const chosen=weap;
-  const pieceVal=SET_VAL[chosen]||0;
+// ---- Find best combos for ATK SPD coverage based on GEAR TIER (not weapon) ----
+function planCombos(cls, weaponTier, gearTier, nonGearBuffs, furyMul){
+  const pieceVal = SET_VAL[gearTier] || 0;
   if(!pieceVal) return [];
-  const denom0=Math.max(base[weap][cls]*(fury && cls==='Berserker'?0.25:1.0),1e-9);
-  const requiredTotal0=1-(TARGET_FINAL/denom0);
-  const need=Math.max(0, requiredTotal0 - buffsBase);
-  const pets=[{name:'S',v:0.12},{name:'A',v:0.09},{name:'B',v:0.06},{name:'None',v:0.00}];
-  const results=[];
+
+  // Required total if only non-gear buffs are applied
+  const baseSpd = baseByWeapon[weaponTier][cls];
+  const denom0 = Math.max(baseSpd * (1 - 0) * furyMul, 1e-9);
+  const requiredTotal0 = 1 - (TARGET_FINAL / denom0);
+  const need = Math.max(0, requiredTotal0 - nonGearBuffs);
+
+  const pets = [{name:'S',v:0.12},{name:'A',v:0.09},{name:'B',v:0.06},{name:'None',v:0.00}];
+  const results = [];
+
   for(let pieces=0; pieces<=MAX_EQUIP_PIECES; pieces++){
-    const equipPct=pieces*pieceVal;
-    for(let qLevel=0; qLevel<=2; qLevel++){ // ≤2 only
-      const q=qLevel/100;
+    const equipPct = pieces * pieceVal;
+    for(let qLevel=0; qLevel<=2; qLevel++){
+      const q = qLevel/100;
       for(let runePct=0.06; runePct>=-1e-9; runePct-=0.01){
-        const rFix=Math.max(0,runePct);
+        const rFix = Math.max(0, runePct);
         for(const pet of pets){
-          const coverage=equipPct + rFix + pet.v + q;
+          const coverage = equipPct + rFix + pet.v + q;
           if(coverage + 1e-9 >= need){
-            const waste=coverage-need;
-            results.push({set:chosen,quickLevel:qLevel,pieces,equipPct,rune:Math.round(rFix*100),pet:pet.name,total:coverage,waste});
+            const waste = coverage - need;
+            results.push({
+              set: gearTier,
+              quickLevel: qLevel,
+              pieces,
+              equipPct,
+              rune: Math.round(rFix*100),
+              pet: pet.name,
+              total: coverage,
+              waste
+            });
             break;
           }
         }
       }
     }
   }
-  results.sort((a,b)=>(a.pieces-b.pieces)||(a.quickLevel-b.quickLevel)||(b.rune-a.rune)||(b.petV-a.petV)||(a.waste-b.waste));
+
+  results.sort((a,b)=>
+    (a.pieces-b.pieces) ||
+    (a.quickLevel-b.quickLevel) ||
+    (b.rune-a.rune) ||
+    (a.waste-b.waste)
+  );
+
   return results.slice(0,7);
 }
 
-// === Slot Recommendations (with purple logic) ===
+// ---- Slot recommendations (focus-aware, purple logic, caps) ----
 function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
   const slotRules = rules.slots[slot];
-  const validNormal = Array.isArray(slotRules.normal)
-    ? slotRules.normal
-    : rules.universalStats;
+  const validNormal = Array.isArray(slotRules.normal) ? slotRules.normal : rules.universalStats;
 
-  const rec=[];
-  let capUsed=false;
+  const rec = [];
+  let capUsed = false;
 
-  const priorities = focus==="DPS"
+  const priorities = (focus==="DPS")
     ? ["CapStat","ATK%","Crit DMG","Monster DMG"]
     : ["CapStat","HP%","DEF%","Damage Reduction","ATK%"];
 
   for(const stat of priorities){
     let chosen = stat;
+
+    // choose a cap stat if available and not exhausted
     if(stat==="CapStat"){
       for(const s of ["ATK SPD","Crit Chance","Evasion"]){
-        if(validNormal.includes(s)){
-          if(capUsed) continue;
-          if(s==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
-          if(s==="Evasion" && evaSoFar>=EVA_CAP) continue;
-          chosen=s;
-          capUsed=true;
-          break;
-        }
+        if(!validNormal.includes(s)) continue;
+        if(slot==="Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(s)) continue; // weapon exclusion
+        if(capUsed) continue;
+        if(s==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
+        if(s==="Evasion" && evaSoFar>=EVA_CAP) continue;
+        chosen = s;
+        capUsed = true;
+        break;
       }
     }
 
@@ -102,6 +154,7 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
     if(rec.length>=maxNormal && !rules.tiers[tier].purple) break;
   }
 
+  // Chaos/Abyss add a purple 5th line following focus
   if(rules.tiers[tier].purple && slotRules.purple.length){
     if(focus==="DPS"){
       const purplePick = slotRules.purple.includes("Crit DMG")
@@ -111,9 +164,7 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
     } else {
       const purplePick = slotRules.purple.includes("HP%")
         ? "HP%"
-        : (slotRules.purple.includes("Damage Reduction")
-          ? "Damage Reduction"
-          : "Crit DMG");
+        : (slotRules.purple.includes("Damage Reduction") ? "Damage Reduction" : "Crit DMG");
       rec.push("Purple: " + purplePick);
     }
   }
@@ -121,42 +172,77 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
   return rec;
 }
 
-// === Init ===
+// ---- Wire up UI ----
 async function init(){
-  const rules=await loadGearRules();
+  const rules = await loadGearRules();
 
+  // Calculator button → show totals and speed math
   document.getElementById('calcBtn').addEventListener('click',()=>{
-    const cls=document.getElementById('cls').value;
-    const weap=document.getElementById('weap').value;
-    const guild=parseFloat(document.getElementById('guild').value||0)/100;
-    const secret=parseFloat(document.getElementById('secret').value||0)/100;
-    const rune=parseFloat(document.getElementById('rune').value||0)/100;
-    const petPct=parseFloat(document.getElementById('pet').value||0)/100;
-    const quick=parseFloat(document.getElementById('quicken').value||0)/100;
-    const fury=document.getElementById('fury').checked;
+    const cls        = document.getElementById('cls').value;
+    const focus      = document.getElementById('focus').value;
+    const weaponTier = document.getElementById('weap').value;
+    const gearTier   = document.getElementById('gearTier').value;
 
-    const state=currentState(cls,weap,fury,quick,guild,secret,rune,petPct);
-    document.getElementById('calcResult').textContent=
-      `Base Speed: ${state.baseSpd}\nRequired Remaining: ${(state.requiredRemaining*100).toFixed(2)}%\nFinal Speed: ${state.finalSpd.toFixed(2)}`;
+    const guildPct   = pct(document.getElementById('guild').value);
+    const secretAtk  = pct(document.getElementById('secret').value);      // generic atk spd secret
+    const secretCrit = pct(document.getElementById('secretCrit').value);  // post-cap
+    const secretEva  = pct(document.getElementById('secretEva').value);   // post-cap
+    const runePct    = pct(document.getElementById('rune').value);
+    const petPct     = pct(document.getElementById('pet').value);
+    const quickPct   = pct(document.getElementById('quicken').value);
+    const charAtkPct = pct(document.getElementById('charAtk').value||0);
+    const fury       = document.getElementById('fury').checked;
+
+    const state = currentState({
+      cls, weaponTier, furyChecked:fury, quickPct,
+      guildPct, secretAtkPct:secretAtk, runePct, petPct, charAtkPct,
+      includeGearRune:true
+    });
+
+    // Output baseline speed info
+    const lines = [];
+    lines.push(`Base Speed: ${state.baseSpd}`);
+    lines.push(`Required Remaining: ${(state.requiredRemaining*100).toFixed(2)}%`);
+    lines.push(`Final Speed: ${state.finalSpd.toFixed(2)}`);
+
+    // Simple totals. Crit/Eva/DR come from optimizer allocation in practice; here we only show post-secret placeholders.
+    // If you want these to mirror the optimizer allocation precisely, run the same slot loop here too.
+    lines.push("");
+    lines.push("=== Total Stat Breakdown (summary) ===");
+    lines.push(`ATK SPD (non-gear buffs combined): ${((state.nonGearBuffs + runePct + petPct)*100).toFixed(1)}%`);
+    lines.push(`Crit Chance (incl. secret): ${(secretCrit*100).toFixed(1)}% + gear (see optimizer)`);
+    lines.push(`Evasion (incl. secret): ${(secretEva*100).toFixed(1)}% + gear (see optimizer)`);
+    lines.push(`Damage Reduction: gear only (see optimizer)`);
+
+    document.getElementById('calcResult').textContent = lines.join('\n');
   });
 
+  // Optimizer button → combos + slot recommendations + capped totals
   document.getElementById('runOpt').addEventListener('click',()=>{
-    const cls=document.getElementById('cls').value;
-    const weap=document.getElementById('weap').value;
-    const focus=document.getElementById('focus').value;
-    const tier=document.getElementById('gearTier').value;
-    const guild=parseFloat(document.getElementById('guild').value||0)/100;
-    const secret=parseFloat(document.getElementById('secret').value||0)/100;
-    const secretCrit=parseFloat(document.getElementById('secretCrit').value||0)/100;
-    const secretEva=parseFloat(document.getElementById('secretEva').value||0)/100;
-    const rune=parseFloat(document.getElementById('rune').value||0)/100;
-    const petPct=parseFloat(document.getElementById('pet').value||0)/100;
-    const quick=parseFloat(document.getElementById('quicken').value||0)/100;
-    const fury=document.getElementById('fury').checked;
+    const cls        = document.getElementById('cls').value;
+    const focus      = document.getElementById('focus').value;
+    const weaponTier = document.getElementById('weap').value;
+    const gearTier   = document.getElementById('gearTier').value;
 
-    const state=currentState(cls,weap,fury,quick,guild,secret,rune,petPct);
-    const combos=planCombos(cls,weap,state.buffsBase,fury);
-    const out=[];
+    const guildPct   = pct(document.getElementById('guild').value);
+    const secretAtk  = pct(document.getElementById('secret').value);
+    const secretCrit = pct(document.getElementById('secretCrit').value);
+    const secretEva  = pct(document.getElementById('secretEva').value);
+    const runePct    = pct(document.getElementById('rune').value);
+    const petPct     = pct(document.getElementById('pet').value);
+    const quickPct   = pct(document.getElementById('quicken').value);
+    const charAtkPct = pct(document.getElementById('charAtk').value||0);
+    const fury       = document.getElementById('fury').checked;
+
+    // State WITHOUT gear/rune baked into non-gear (we pass includeGearRune:false)
+    const s0 = currentState({
+      cls, weaponTier, furyChecked:fury, quickPct,
+      guildPct, secretAtkPct:secretAtk, runePct:0, petPct, charAtkPct,
+      includeGearRune:false
+    });
+
+    const combos = planCombos(cls, weaponTier, gearTier, s0.nonGearBuffs, s0.furyMul);
+    const out = [];
 
     if(combos.length){
       out.push("Best Combo Suggestions:");
@@ -167,28 +253,34 @@ async function init(){
       out.push("No valid combos found (with quicken ≤2).");
     }
 
+    // Slot recommendations + gear+rune capped totals
     out.push("\n--- Slot Recommendations ---");
-    out.push(`${focus} priorities (${tier}):`);
-    let critSoFar=0, evaSoFar=0, drSoFar=0;
+    out.push(`${focus} priorities (${gearTier}):`);
+
+    let critGear=0, evaGear=0, drGear=0; // gear+rune only
     for(const slot in rules.slots){
-      const rec=recommendStatsForSlot(slot,rules,focus,tier,critSoFar,evaSoFar,drSoFar);
-      const vals=rules.capValues;
-      if(rec.includes("Crit Chance")) critSoFar+=vals["Crit Chance"][tier];
-      if(rec.includes("Evasion")) evaSoFar+=vals["Evasion"][tier];
-      if(rec.includes("Damage Reduction")) drSoFar+=vals["Damage Reduction"][tier];
+      const rec = recommendStatsForSlot(slot, rules, focus, gearTier, critGear, evaGear, drGear);
+
+      // accumulate gear+rune totals using per-line values for this tier
+      const vals = rules.capValues;
+      if(rec.includes("Crit Chance"))        critGear = Math.min(CRIT_CAP, critGear + vals["Crit Chance"][gearTier]);
+      if(rec.includes("Evasion"))            evaGear  = Math.min(EVA_CAP,  evaGear  + vals["Evasion"][gearTier]);
+      if(rec.includes("Damage Reduction"))   drGear   = Math.min(DR_CAP,   drGear   + vals["Damage Reduction"][gearTier]);
+
       out.push(`  ${slot}: ${rec.join(", ")}`);
     }
 
     // Apply secret tech AFTER gear+rune caps
-    critSoFar += secretCrit;
-    evaSoFar  += secretEva;
+    const critFinal = critGear + secretCrit;
+    const evaFinal  = evaGear  + secretEva;
+    const drFinal   = drGear; // no secret DR specified
 
     out.push("");
-    out.push(`Final Crit Chance (incl. secret): ${(critSoFar*100).toFixed(1)}%`);
-    out.push(`Final Evasion (incl. secret): ${(evaSoFar*100).toFixed(1)}%`);
-    out.push(`Final Damage Reduction: ${(drSoFar*100).toFixed(1)}%`);
+    out.push(`Final Crit Chance (incl. secret): ${(critFinal*100).toFixed(1)}%`);
+    out.push(`Final Evasion (incl. secret): ${(evaFinal*100).toFixed(1)}%`);
+    out.push(`Final Damage Reduction: ${(drFinal*100).toFixed(1)}%`);
 
-    document.getElementById('output').textContent=out.join('\n');
+    document.getElementById('output').textContent = out.join('\n');
   });
 }
 
