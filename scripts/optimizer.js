@@ -67,7 +67,7 @@ function planCombos(cls,weap,buffsBase,fury){
 function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
   const slotRules = rules.slots[slot];
 
-  // FIX: properly resolve "universalStats"
+  // Resolve "universalStats" correctly
   const validNormal = Array.isArray(slotRules.normal)
     ? slotRules.normal
     : rules.universalStats;
@@ -94,12 +94,16 @@ function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSo
 
     rec.push(stat);
 
-    const maxCount = rules.tiers[tier].normalLines;
-    if(rec.length>=maxCount) break;
+    // Normal line limit
+    const maxNormal = rules.tiers[tier].normalLines;
+
+    // If we've filled normal lines and tier has no purple → stop
+    if(rec.length >= maxNormal && !rules.tiers[tier].purple) break;
   }
 
-  if(slotRules.purple.length){
-    rec.push(`(Purple option: ${slotRules.purple.join(" / ")})`);
+  // If Chaos/Abyss has purple options, add as a proper 5th line
+  if(rules.tiers[tier].purple && slotRules.purple.length){
+    rec.push("Purple: " + slotRules.purple.join(" / "));
   }
 
   return rec;
