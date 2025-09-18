@@ -19,7 +19,7 @@ const CRIT_CAP = 0.50;   // 50%
 const EVA_CAP  = 0.40;   // 40%
 const DR_CAP   = 1.00;   // 100%
 
-// Calculator state
+// === Calculator state ===
 function currentState(cls, weap, fury, quick, guild, secret, rune, petPct){
   const baseSpd=base[weap][cls];
   const buffsBase=(guild+secret);
@@ -32,7 +32,7 @@ function currentState(cls, weap, fury, quick, guild, secret, rune, petPct){
   return {baseSpd,requiredRemaining,finalSpd,buffsBase};
 }
 
-// Optimizer combos
+// === Optimizer combos ===
 function planCombos(cls,weap,buffsBase,fury){
   const chosen=weap;
   const pieceVal=SET_VAL[chosen]||0;
@@ -63,19 +63,25 @@ function planCombos(cls,weap,buffsBase,fury){
   return results.slice(0,7);
 }
 
-// Slot Recommendations with caps enforced
+// === Slot Recommendations with caps enforced ===
 function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
-  const slotRules=rules.slots[slot];
-  const validNormal=(Array.isArray(slotRules.normal)?slotRules.normal:rules[slotRules.normal]);
+  const slotRules = rules.slots[slot];
+
+  // FIX: properly resolve "universalStats"
+  const validNormal = Array.isArray(slotRules.normal)
+    ? slotRules.normal
+    : rules.universalStats;
+
   const rec=[];
   let capUsed=false;
 
   for(const stat of priorities){
     if(!validNormal.includes(stat)) continue;
 
-// Exclude cap stats from weapons
-if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) continue;
-    // Cap stat restriction
+    // Exclude cap stats from weapons
+    if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) continue;
+
+    // Cap stat restriction (non-weapon)
     if(["ATK SPD","Crit Chance","Evasion"].includes(stat)){
       if(capUsed) continue;
       if(stat==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
@@ -83,11 +89,12 @@ if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) cont
       capUsed=true;
     }
 
+    // Damage Reduction cap
     if(stat==="Damage Reduction" && drSoFar>=DR_CAP) continue;
+
     rec.push(stat);
 
-    // Stop when we hit tier line count
-    const maxCount=rules.tiers[tier].normalLines;
+    const maxCount = rules.tiers[tier].normalLines;
     if(rec.length>=maxCount) break;
   }
 
@@ -122,7 +129,7 @@ async function init(){
   document.getElementById('runOpt').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
-    const tier=document.getElementById('optSet').value; // New tier selector
+    const tier=document.getElementById('optSet').value;
     const guild=parseFloat(document.getElementById('guild').value||0)/100;
     const secret=parseFloat(document.getElementById('secret').value||0)/100;
     const rune=parseFloat(document.getElementById('rune').value||0)/100;
@@ -150,7 +157,6 @@ async function init(){
       let critSoFar=0, evaSoFar=0, drSoFar=0;
       for(const slot in rules.slots){
         const rec=recommendStatsForSlot(slot,rules,rules.priorities[type],tier,critSoFar,evaSoFar,drSoFar);
-        // update running totals using per-line values
         const vals=rules.capValues;
         if(rec.includes("Crit Chance")) critSoFar+=vals["Crit Chance"][tier];
         if(rec.includes("Evasion")) evaSoFar+=vals["Evasion"][tier];
@@ -164,4 +170,4 @@ async function init(){
   });
 }
 
-init();
+init();;
