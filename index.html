@@ -4,18 +4,7 @@
 <meta charset="utf-8" />
 <title>Rediscover ATK SPD Optimizer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-  body{background:#0c0f14;color:#e8ecf8;font-family:system-ui,Inter,sans-serif;margin:0}
-  header{padding:12px;background:#3b2e13;color:#fff}
-  h1{margin:0;font-size:20px}
-  main{max-width:800px;margin:12px auto;padding:0 12px}
-  .card{background:#121826;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin:12px 0}
-  label{font-weight:700;color:#a8b0c2}
-  select,input{width:100%;padding:6px;margin:4px 0;border-radius:6px;border:1px solid #333;background:#1c2438;color:#e8ecf8}
-  button{margin-top:10px;padding:8px 12px;font-weight:700;border:1px solid #555;background:#2a344d;color:#fff;border-radius:8px;cursor:pointer}
-  pre{white-space:pre-wrap;background:#0c0f14;padding:8px;border-radius:8px}
-  footer{padding:10px;text-align:center;background:#000;color:#fff;font-size:12px}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -27,6 +16,7 @@
     <!-- Calculator -->
     <div class="card">
       <h2>ATK SPD Calculator</h2>
+
       <label>Class:</label>
       <select id="cls">
         <option value="Berserker">Berserker</option>
@@ -35,24 +25,36 @@
         <option value="Sorcerer">Sorcerer</option>
       </select>
 
-      <!-- Focus -->
       <label>Focus:</label>
       <select id="focus">
         <option value="DPS">DPS</option>
         <option value="Tank">Tank</option>
       </select>
-      <br><br>
 
-      <!-- Characteristic -->
+      <label>Weapon Tier:</label>
+      <select id="weap">
+        <option value="Original">Original</option>
+        <option value="Primal">Primal</option>
+        <option value="Chaos">Chaos</option>
+        <option value="Abyss">Abyss</option>
+        <option value="PVP/Boss">PVP/Boss</option>
+      </select>
+
+      <label>Gear Tier:</label>
+      <select id="gearTier">
+        <option value="Primal">Primal</option>
+        <option value="Original">Original</option>
+        <option value="Chaos">Chaos</option>
+        <option value="Abyss" selected>Abyss</option>
+      </select>
+
       <label>Characteristic:</label>
       <select id="charType">
         <option value="0">None (0%)</option>
         <option value="7">Heroic (+7%)</option>
         <option value="10">Swift (+10%)</option>
       </select>
-      <br><br>
 
-      <!-- Stat Colour -->
       <label>Stat Colour (ATK SPD):</label>
       <select id="statColor">
         <option value="0">White (0%)</option>
@@ -60,39 +62,19 @@
         <option value="20">Orange (20%)</option>
         <option value="30">Purple (30%)</option>
       </select>
-      <br><br>
 
-      <!-- Secret Tech -->
       <label>Secret Tech:</label>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-        <div>
-          <span>ATK SPD</span><br>
-          <input id="secret" type="number" value="0" step="0.1"> %
-        </div>
-        <div>
-          <span>Crit Chance</span><br>
-          <input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %
-        </div>
-        <div>
-          <span>Evasion</span><br>
-          <input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %
-        </div>
+      <div class="row">
+        <div><span>ATK SPD</span><br><input id="secret" type="number" value="0" step="0.1"> %</div>
+        <div><span>Crit Chance</span><br><input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %</div>
+        <div><span>Evasion</span><br><input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %</div>
       </div>
-      <br><br>
 
-      <!-- Guild Buffs -->
       <label>Guild Buffs:</label>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
-        <div>
-          <span>ATK SPD</span><br>
-          <input id="guild" type="number" value="5" step="0.1"> %
-        </div>
-        <div>
-          <span>Crit Chance</span><br>
-          <input id="guildCrit" type="number" value="0" step="0.1"> %
-        </div>
+      <div class="row">
+        <div><span>ATK SPD</span><br><input id="guild" type="number" value="5" step="0.1"> %</div>
+        <div><span>Crit Chance</span><br><input id="guildCrit" type="number" value="0" step="0.1"> %</div>
       </div>
-      <br><br>
 
       <label>Rune ATK SPD (%):</label>
       <input id="rune" type="number" value="0" step="0.1">
@@ -116,7 +98,7 @@
       <input id="fury" type="checkbox">
 
       <button id="calcBtn">Recalculate</button>
-      <div id="calcResult"></div>
+      <pre id="calcResult"></pre>
     </div>
 
     <!-- Optimizer -->
@@ -124,8 +106,6 @@
       <h2>Optimizer</h2>
       <button id="runOpt">Run Optimizer</button>
       <pre id="output"></pre>
-      <h3>Final Stat Breakdown</h3>
-      <div id="statBreakdown"></div>
     </div>
   </main>
 
@@ -133,94 +113,6 @@
     Guild – <strong>Rediscover Alliance</strong> | Creator – <strong>SAGE</strong>
   </footer>
 
-<script>
-const gearRules = {
-  caps:{crit:0.50,eva:0.40,dr:0.88}
-};
-
-const baseOriginal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
-const basePrimal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
-const basePvP={"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
-const base={"Original":baseOriginal,"Primal":basePrimal,"Chaos":baseOriginal,"Abyss":basePrimal,"PVP/Boss":basePvP};
-const TARGET_FINAL=0.25;
-
-function currentState(){
-  const cls=clsEl.value, weap=weapEl.value, baseSpd=base[weap][cls];
-  const guild=parseFloat(guildEl.value||0)/100;
-  const guildCrit=parseFloat(guildCritEl.value||0)/100;
-  const secretAtk=parseFloat(secretAtkEl.value||0)/100;
-  const rune=parseFloat(runeEl.value||0)/100;
-  const pet=parseFloat(petEl.value||0)/100;
-  const quick=parseFloat(quickenEl.value||0)/100;
-  const charType=parseFloat(charTypeEl.value||0)/100;
-  const statColor=parseFloat(statColorEl.value||0)/100;
-  const fury=(furyEl.checked&&cls==="Berserker")?0.25:1.0;
-
-  const buffsBase=guild+secretAtk+charType+statColor;
-  const buffsAll=buffsBase+rune+pet;
-  const denom=Math.max(baseSpd*(1-quick)*fury,1e-9);
-  const requiredTotal=1-(TARGET_FINAL/denom);
-  const requiredRemaining=Math.max(0,requiredTotal-buffsAll);
-  const finalRaw=baseSpd*(1-buffsAll)*(1-quick)*fury;
-  const finalSpd=Math.max(finalRaw,TARGET_FINAL);
-
-  return {cls,weap,baseSpd,guild,guildCrit,secretAtk,rune,pet,quick,charType,statColor,fury,buffsBase,buffsAll,requiredTotal,requiredRemaining,finalSpd};
-}
-
-function recalc(){
-  const s=currentState();
-  calcResult.textContent=`Progress ${(s.buffsAll/s.requiredTotal*100).toFixed(1)}% | Required Remaining ${(s.requiredRemaining*100).toFixed(2)}% | Final Spd ${s.finalSpd.toFixed(2)}`;
-}
-
-function runOpt(){
-  const s=currentState();
-  let atkspd=s.guild+s.secretAtk+s.charType+s.statColor+s.rune+s.pet+s.quick+(s.cls==="Berserker"&&s.fury===0.25?0.25:0);
-
-  // Crit/Eva from secret + guild
-  let crit=parseFloat(secretCritEl.value||0)/100 + s.guildCrit;
-  let eva=parseFloat(secretEvaEl.value||0)/100;
-
-  if(crit>gearRules.caps.crit)crit=gearRules.caps.crit;
-  if(eva>gearRules.caps.eva)eva=gearRules.caps.eva;
-
-  let dr=0;
-  if(dr>gearRules.caps.dr)dr=gearRules.caps.dr;
-
-  output.textContent=`ATK SPD: ${(atkspd*100).toFixed(1)}%
-Crit Chance: ${(crit*100).toFixed(1)}% / cap ${(gearRules.caps.crit*100)}%
-Evasion: ${(eva*100).toFixed(1)}% / cap ${(gearRules.caps.eva*100)}%
-Damage Reduction: ${(dr*100).toFixed(1)}% / cap ${(gearRules.caps.dr*100)}%`;
-
-  statBreakdown.textContent=output.textContent;
-}
-
-// wire
-const clsEl=document.getElementById("cls");
-const focusEl=document.getElementById("focus");
-const weapEl=document.getElementById("weap");
-const gearTierEl=document.getElementById("gearTier");
-
-const guildEl=document.getElementById("guild");
-const guildCritEl=document.getElementById("guildCrit");
-
-const secretAtkEl=document.getElementById("secret");
-const secretCritEl=document.getElementById("secretCrit");
-const secretEvaEl=document.getElementById("secretEva");
-
-const runeEl=document.getElementById("rune");
-const petEl=document.getElementById("pet");
-const quickenEl=document.getElementById("quicken");
-
-const charTypeEl=document.getElementById("charType");
-const statColorEl=document.getElementById("statColor");
-const furyEl=document.getElementById("fury");
-
-const calcResult=document.getElementById("calcResult");
-const output=document.getElementById("output");
-const statBreakdown=document.getElementById("statBreakdown");
-
-document.getElementById("calcBtn").addEventListener("click",recalc);
-document.getElementById("runOpt").addEventListener("click",runOpt);
-</script>
+<script src="scripts/optimizer.js"></script>
 </body>
 </html>
