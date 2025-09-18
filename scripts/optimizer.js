@@ -113,64 +113,43 @@ function planCombos(cls, weaponTier, gearTier, nonGearBuffs, furyMul){
 }
 
 // ---- Slot recommendations ----
-function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
+function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0, drSoFar=0, atkspdSoFar=0){
   const slotRules = rules.slots[slot];
   const validNormal = Array.isArray(slotRules.normal) ? slotRules.normal : rules.universalStats;
-
   const rec = [];
 
-  const priorities = (focus === "DPS")
-    ? ["CapStat","ATK%","Crit DMG","Monster DMG"]
-    : ["CapStat","HP%","DEF%","Damage Reduction","ATK%"];
-
-  for(const stat of priorities){
-    let chosen = null;
-
-    if(stat==="CapStat"){
-      // DPS first takes ATK SPD, then adds Crit/Eva if under cap
-      if(focus==="DPS"){
-        if(validNormal.includes("ATK SPD")) {
-          chosen = "ATK SPD";
-        }
-        else if(validNormal.includes("Crit Chance") && critSoFar < CRIT_CAP){
-          chosen = "Crit Chance";
-        }
-        else if(validNormal.includes("Evasion") && evaSoFar < EVA_CAP){
-          chosen = "Evasion";
-        }
-      } else {
-        // Tanks pick Crit/Eva if under cap, then ATK SPD fallback
-        if(validNormal.includes("Crit Chance") && critSoFar < CRIT_CAP){
-          chosen = "Crit Chance";
-        }
-        else if(validNormal.includes("Evasion") && evaSoFar < EVA_CAP){
-          chosen = "Evasion";
-        }
-        else if(validNormal.includes("ATK SPD")) {
-          chosen = "ATK SPD";
-        }
-      }
-    } else {
-      chosen = stat;
-    }
-
-    if(!chosen || !validNormal.includes(chosen)) continue;
-    if(focus==="DPS" && chosen==="Damage Reduction") continue;
-    if(chosen==="Damage Reduction" && drSoFar>=DR_CAP) continue;
-    if(slot==="Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(chosen)) continue;
-
-    rec.push(chosen);
-
-    // Track caps
-    if(chosen==="Crit Chance") critSoFar += rules.capValues["Crit Chance"][tier] || 0;
-    if(chosen==="Evasion")     evaSoFar  += rules.capValues["Evasion"][tier] || 0;
-    if(chosen==="Damage Reduction") drSoFar += rules.capValues["Damage Reduction"][tier] || 0;
-
-    const maxNormal = rules.tiers[tier].normalLines;
-    if(rec.length >= maxNormal && !rules.tiers[tier].purple) break;
+  // Always try ATK SPD first
+  if(validNormal.includes("ATK SPD") && slot!=="Weapon" && atkspdSoFar < 1.0){
+    rec.push("ATK SPD");
+    atkspdSoFar += rules.capValues["ATK SPD"] ? (rules.capValues["ATK SPD"][tier] || 0) : 0;
   }
 
-  // Weapon special
+  // Then Crit Chance
+  if(validNormal.includes("Crit Chance") && critSoFar < CRIT_CAP){
+    rec.push("Crit Chance");
+    critSoFar += rules.capValues["Crit Chance"][tier] || 0;
+  }
+
+  // Then Evasion
+  if(validNormal.includes("Evasion") && evaSoFar < EVA_CAP){
+    rec.push("Evasion");
+    evaSoFar += rules.capValues["Evasion"][tier] || 0;
+  }
+
+  // Fill remaining lines based on focus
+  const extras = (focus==="DPS")
+    ? ["ATK%","Crit DMG","Monster DMG"]
+    : ["Damage Reduction","HP%","DEF%","ATK%"];
+
+  for(const extra of extras){
+    if(rec.length >= rules.tiers[tier].normalLines) break;
+    if(!validNormal.includes(extra)) continue;
+    if(extra==="Damage Reduction" && drSoFar >= DR_CAP) continue;
+    rec.push(extra);
+    if(extra==="Damage Reduction") drSoFar += rules.capValues["Damage Reduction"][tier] || 0;
+  }
+
+  // Weapon-only special lines
   if(slot==="Weapon"){
     if(focus==="DPS" && validNormal.includes("Cast Demon Lord")){
       rec.push("Cast Demon Lord");
@@ -180,16 +159,12 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
     }
   }
 
-  // Purple 5th line
+  // Purple 5th line logic
   if(rules.tiers[tier].purple && slotRules.purple.length){
     if(focus==="DPS"){
-      const purplePick = slotRules.purple.includes("Crit DMG")
-        ? "Crit DMG" : slotRules.purple[0];
-      rec.push("Purple: " + purplePick);
+      rec.push("Purple: " + (slotRules.purple.includes("Crit DMG") ? "Crit DMG" : slotRules.purple[0]));
     } else {
-      const purplePick = slotRules.purple.includes("HP%")
-        ? "HP%" : (slotRules.purple.includes("Damage Reduction") ? "Damage Reduction" : "Crit DMG");
-      rec.push("Purple: " + purplePick);
+      rec.push("Purple: " + (slotRules.purple.includes("HP%") ? "HP%" : (slotRules.purple.includes("Damage Reduction") ? "Damage Reduction" : "Crit DMG")));
     }
   }
 
