@@ -140,7 +140,9 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
       }
     }
 
+    // Skip invalid or capped stats
     if(!chosen || !validNormal.includes(chosen)) continue;
+    if(focus === "DPS" && chosen === "Damage Reduction") continue; // 🚫 block DR for DPS
     if(chosen==="Damage Reduction" && drSoFar >= DR_CAP) continue;
     if(slot==="Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(chosen)) continue;
 
@@ -177,7 +179,6 @@ function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0
 
   return rec;
 }
-
 // ---- Wire up UI ----
 async function init(){
   const rules = await loadGearRules();
