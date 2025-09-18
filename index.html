@@ -151,7 +151,7 @@ function currentState(){
   const cls=clsEl.value, weap=weapEl.value, baseSpd=base[weap][cls];
   const guild=parseFloat(guildEl.value||0)/100;
   const guildCrit=parseFloat(guildCritEl.value||0)/100;
-  const secretAtk=parseFloat(secretEl.value||0)/100;
+  const secretAtk=parseFloat(secretAtkEl.value||0)/100;
   const rune=parseFloat(runeEl.value||0)/100;
   const pet=parseFloat(petEl.value||0)/100;
   const quick=parseFloat(quickenEl.value||0)/100;
@@ -186,7 +186,7 @@ function runOpt(){
   if(crit>gearRules.caps.crit)crit=gearRules.caps.crit;
   if(eva>gearRules.caps.eva)eva=gearRules.caps.eva;
 
-  let dr=0; // nothing adding DR yet
+  let dr=0;
   if(dr>gearRules.caps.dr)dr=gearRules.caps.dr;
 
   output.textContent=`ATK SPD: ${(atkspd*100).toFixed(1)}%
@@ -204,7 +204,7 @@ const weapEl=document.getElementById("weap");
 const gearTierEl=document.getElementById("gearTier");
 const guildEl=document.getElementById("guild");
 const guildCritEl=document.getElementById("guildCrit");
-const secretEl=document.getElementById("secret");
+const secretAtkEl=document.getElementById("secret");
 const secretCritEl=document.getElementById("secretCrit");
 const secretEvaEl=document.getElementById("secretEva");
 const runeEl=document.getElementById("rune");
