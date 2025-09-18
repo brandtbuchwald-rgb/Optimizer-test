@@ -63,11 +63,9 @@ function planCombos(cls,weap,buffsBase,fury){
   return results.slice(0,7);
 }
 
-// === Slot Recommendations with caps enforced ===
-function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
+// === Slot Recommendations (with purple logic) ===
+function recommendStatsForSlot(slot, rules, focus, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
   const slotRules = rules.slots[slot];
-
-  // Resolve "universalStats" correctly
   const validNormal = Array.isArray(slotRules.normal)
     ? slotRules.normal
     : rules.universalStats;
@@ -75,35 +73,54 @@ function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSo
   const rec=[];
   let capUsed=false;
 
+  // Priority templates
+  const priorities = focus==="DPS"
+    ? ["CapStat","ATK%","Crit DMG","Monster DMG"]
+    : ["CapStat","HP%","DEF%","Damage Reduction","ATK%"];
+
   for(const stat of priorities){
-    if(!validNormal.includes(stat)) continue;
+    let chosen = stat;
 
-    // Exclude cap stats from weapons
-    if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) continue;
-
-    // Cap stat restriction (non-weapon)
-    if(["ATK SPD","Crit Chance","Evasion"].includes(stat)){
-      if(capUsed) continue;
-      if(stat==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
-      if(stat==="Evasion" && evaSoFar>=EVA_CAP) continue;
-      capUsed=true;
+    if(stat==="CapStat"){
+      for(const s of ["ATK SPD","Crit Chance","Evasion"]){
+        if(validNormal.includes(s)){
+          if(capUsed) continue;
+          if(s==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
+          if(s==="Evasion" && evaSoFar>=EVA_CAP) continue;
+          chosen=s;
+          capUsed=true;
+          break;
+        }
+      }
     }
 
-    // Damage Reduction cap
-    if(stat==="Damage Reduction" && drSoFar>=DR_CAP) continue;
+    if(!chosen || !validNormal.includes(chosen)) continue;
+    if(chosen==="Damage Reduction" && drSoFar>=DR_CAP) continue;
 
-    rec.push(stat);
+    // Exclude cap stats from weapons
+    if(slot==="Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(chosen)) continue;
 
-    // Normal line limit
+    rec.push(chosen);
+
     const maxNormal = rules.tiers[tier].normalLines;
-
-    // If we've filled normal lines and tier has no purple → stop
-    if(rec.length >= maxNormal && !rules.tiers[tier].purple) break;
+    if(rec.length>=maxNormal && !rules.tiers[tier].purple) break;
   }
 
-  // If Chaos/Abyss has purple options, add as a proper 5th line
+  // Purple slot logic for Chaos/Abyss
   if(rules.tiers[tier].purple && slotRules.purple.length){
-    rec.push("Purple: " + slotRules.purple.join(" / "));
+    if(focus==="DPS"){
+      const purplePick = slotRules.purple.includes("Crit DMG")
+        ? "Crit DMG"
+        : slotRules.purple[0];
+      rec.push("Purple: " + purplePick);
+    } else {
+      const purplePick = slotRules.purple.includes("HP%")
+        ? "HP%"
+        : (slotRules.purple.includes("Damage Reduction")
+          ? "Damage Reduction"
+          : "Crit DMG");
+      rec.push("Purple: " + purplePick);
+    }
   }
 
   return rec;
@@ -113,7 +130,7 @@ function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSo
 async function init(){
   const rules=await loadGearRules();
 
-  // Calculator button
+  // Calculator
   document.getElementById('calcBtn').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
@@ -129,11 +146,12 @@ async function init(){
       `Base Speed: ${state.baseSpd}\nRequired Remaining: ${(state.requiredRemaining*100).toFixed(2)}%\nFinal Speed: ${state.finalSpd.toFixed(2)}`;
   });
 
-  // Optimizer button
+  // Optimizer
   document.getElementById('runOpt').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
-    const tier=document.getElementById('optSet').value;
+    const focus=document.getElementById('focus').value;
+    const tier=document.getElementById('gearTier').value;
     const guild=parseFloat(document.getElementById('guild').value||0)/100;
     const secret=parseFloat(document.getElementById('secret').value||0)/100;
     const rune=parseFloat(document.getElementById('rune').value||0)/100;
@@ -154,24 +172,21 @@ async function init(){
       out.push("No valid combos found (with quicken ≤2).");
     }
 
-    // Slot recommendations
+    // Slot recs
     out.push("\n--- Slot Recommendations ---");
-    ["DPS","Tank"].forEach(type=>{
-      out.push(`${type} priorities (${tier}):`);
-      let critSoFar=0, evaSoFar=0, drSoFar=0;
-      for(const slot in rules.slots){
-        const rec=recommendStatsForSlot(slot,rules,rules.priorities[type],tier,critSoFar,evaSoFar,drSoFar);
-        const vals=rules.capValues;
-        if(rec.includes("Crit Chance")) critSoFar+=vals["Crit Chance"][tier];
-        if(rec.includes("Evasion")) evaSoFar+=vals["Evasion"][tier];
-        if(rec.includes("Damage Reduction")) drSoFar+=vals["Damage Reduction"][tier];
-        out.push(`  ${slot}: ${rec.join(", ")}`);
-      }
-      out.push("");
-    });
+    out.push(`${focus} priorities (${tier}):`);
+    let critSoFar=0, evaSoFar=0, drSoFar=0;
+    for(const slot in rules.slots){
+      const rec=recommendStatsForSlot(slot,rules,focus,tier,critSoFar,evaSoFar,drSoFar);
+      const vals=rules.capValues;
+      if(rec.includes("Crit Chance")) critSoFar+=vals["Crit Chance"][tier];
+      if(rec.includes("Evasion")) evaSoFar+=vals["Evasion"][tier];
+      if(rec.includes("Damage Reduction")) drSoFar+=vals["Damage Reduction"][tier];
+      out.push(`  ${slot}: ${rec.join(", ")}`);
+    }
 
     document.getElementById('output').textContent=out.join('\n');
   });
 }
 
-init();;
+init();
