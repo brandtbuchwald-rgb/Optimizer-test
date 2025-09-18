@@ -14,6 +14,11 @@ const TARGET_FINAL=0.25;
 const SET_VAL={Abyss:0.16,Chaos:0.14,Original:0.12,Primal:0.12};
 const MAX_EQUIP_PIECES=8;
 
+// Caps
+const CRIT_CAP = 0.50;   // 50%
+const EVA_CAP  = 0.40;   // 40%
+const DR_CAP   = 1.00;   // 100%
+
 // Calculator state
 function currentState(cls, weap, fury, quick, guild, secret, rune, petPct){
   const baseSpd=base[weap][cls];
@@ -58,6 +63,40 @@ function planCombos(cls,weap,buffsBase,fury){
   return results.slice(0,7);
 }
 
+// Slot Recommendations with caps enforced
+function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSoFar=0, drSoFar=0){
+  const slotRules=rules.slots[slot];
+  const validNormal=(Array.isArray(slotRules.normal)?slotRules.normal:rules[slotRules.normal]);
+  const rec=[];
+  let capUsed=false;
+
+  for(const stat of priorities){
+    if(!validNormal.includes(stat)) continue;
+
+    // Cap stat restriction
+    if(["ATK SPD","Crit Chance","Evasion"].includes(stat)){
+      if(capUsed) continue;
+      if(stat==="Crit Chance" && critSoFar>=CRIT_CAP) continue;
+      if(stat==="Evasion" && evaSoFar>=EVA_CAP) continue;
+      capUsed=true;
+    }
+
+    if(stat==="Damage Reduction" && drSoFar>=DR_CAP) continue;
+
+    rec.push(stat);
+
+    // Stop when we hit tier line count
+    const maxCount=rules.tiers[tier].normalLines;
+    if(rec.length>=maxCount) break;
+  }
+
+  if(slotRules.purple.length){
+    rec.push(`(Purple option: ${slotRules.purple.join(" / ")})`);
+  }
+
+  return rec;
+}
+
 // === Init ===
 async function init(){
   const rules=await loadGearRules();
@@ -82,6 +121,7 @@ async function init(){
   document.getElementById('runOpt').addEventListener('click',()=>{
     const cls=document.getElementById('cls').value;
     const weap=document.getElementById('weap').value;
+    const tier=document.getElementById('optSet').value; // New tier selector
     const guild=parseFloat(document.getElementById('guild').value||0)/100;
     const secret=parseFloat(document.getElementById('secret').value||0)/100;
     const rune=parseFloat(document.getElementById('rune').value||0)/100;
@@ -102,17 +142,22 @@ async function init(){
       out.push("No valid combos found (with quicken ≤2).");
     }
 
-    out.push("\n--- Slot Rules ---");
-    for(const slot in rules.slots){
-      const s=rules.slots[slot];
-      out.push(`${slot}:`);
-      out.push(`  Normal → ${Array.isArray(s.normal)?s.normal.join(', '):s.normal}`);
-      out.push(`  Purple → ${s.purple.join(', ')}`);
-      if(s.duplicationAllowed.length){
-        out.push(`  Duplicates allowed → ${s.duplicationAllowed.join(', ')}`);
+    // Slot recommendations
+    out.push("\n--- Slot Recommendations ---");
+    ["DPS","Tank"].forEach(type=>{
+      out.push(`${type} priorities (${tier}):`);
+      let critSoFar=0, evaSoFar=0, drSoFar=0;
+      for(const slot in rules.slots){
+        const rec=recommendStatsForSlot(slot,rules,rules.priorities[type],tier,critSoFar,evaSoFar,drSoFar);
+        // update running totals using per-line values
+        const vals=rules.capValues;
+        if(rec.includes("Crit Chance")) critSoFar+=vals["Crit Chance"][tier];
+        if(rec.includes("Evasion")) evaSoFar+=vals["Evasion"][tier];
+        if(rec.includes("Damage Reduction")) drSoFar+=vals["Damage Reduction"][tier];
+        out.push(`  ${slot}: ${rec.join(", ")}`);
       }
-      out.push('');
-    }
+      out.push("");
+    });
 
     document.getElementById('output').textContent=out.join('\n');
   });
