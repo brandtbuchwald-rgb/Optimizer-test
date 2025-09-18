@@ -17,13 +17,29 @@
       </select>
       <br><br>
 
-      <label>Weapon Type:</label>
+      <label>Focus:</label>
+      <select id="focus">
+        <option value="DPS">DPS</option>
+        <option value="Tank">Tank</option>
+      </select>
+      <br><br>
+
+      <label>Weapon Tier:</label>
       <select id="weap">
         <option value="Original">Original</option>
         <option value="Primal">Primal</option>
         <option value="Chaos">Chaos</option>
         <option value="Abyss">Abyss</option>
         <option value="PVP/Boss">PVP/Boss</option>
+      </select>
+      <br><br>
+
+      <label>Gear Tier:</label>
+      <select id="gearTier">
+        <option value="Primal">Primal</option>
+        <option value="Original">Original</option>
+        <option value="Chaos">Chaos</option>
+        <option value="Abyss" selected>Abyss</option>
       </select>
       <br><br>
 
@@ -34,14 +50,7 @@
       <label>Secret Tech (%):</label>
       <input id="secret" type="number" value="10" step="0.1"> %
       <br><br>
-<label>Optimize For Set:</label>
-<select id="optSet">
-  <option value="Primal">Primal</option>
-  <option value="Original">Original</option>
-  <option value="Chaos">Chaos</option>
-  <option value="Abyss" selected>Abyss</option>
-</select>
-<br><br>
+
       <label>Rune ATK SPD (%):</label>
       <input id="rune" type="number" value="0" step="0.1"> %
       <br><br>
