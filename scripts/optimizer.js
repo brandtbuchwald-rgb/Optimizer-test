@@ -73,6 +73,8 @@ function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSo
   for(const stat of priorities){
     if(!validNormal.includes(stat)) continue;
 
+// Exclude cap stats from weapons
+if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) continue;
     // Cap stat restriction
     if(["ATK SPD","Crit Chance","Evasion"].includes(stat)){
       if(capUsed) continue;
@@ -82,8 +84,6 @@ function recommendStatsForSlot(slot, rules, priorities, tier, critSoFar=0, evaSo
     }
 
     if(stat==="Damage Reduction" && drSoFar>=DR_CAP) continue;
-// Exclude cap stats from weapons
-if(slot === "Weapon" && ["ATK SPD","Crit Chance","Evasion"].includes(stat)) continue;
     rec.push(stat);
 
     // Stop when we hit tier line count
