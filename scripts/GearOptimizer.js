@@ -263,18 +263,41 @@ async function init(){
       out.push("No valid combos found (with quicken ≤2).");
     }
 
-    out.push("\n--- Slot Recommendations ---");
-    out.push(`${focus} priorities (${gearTier}):`);
+    let gearHtml = `
+  <div class="card gear-card">
+    <div class="inner">
+      <hr style="border:0;border-top:1px solid var(--border);margin:12px 0 16px">
+      <h2 style="margin-top:0">Recommended Gear</h2>
+      <div style="font-size:13px;opacity:.8;margin-bottom:12px">
+        Set: <strong>${gearTier}</strong> | Focus: <strong>${focus}</strong>
+      </div>
+`;
 
-    let critGear=0, evaGear=0, drGear=0;
-    for(const slot in rules.slots){
-      const rec = recommendStatsForSlot(slot, rules, focus, gearTier, critGear, evaGear, drGear);
-      const vals = rules.capValues;
-      if(rec.includes("Crit Chance"))      critGear = Math.min(CRIT_CAP, critGear + vals["Crit Chance"][gearTier]);
-      if(rec.includes("Evasion"))          evaGear  = Math.min(EVA_CAP,  evaGear  + vals["Evasion"][gearTier]);
-      if(rec.includes("Damage Reduction")) drGear   = Math.min(DR_CAP,   drGear   + vals["Damage Reduction"][gearTier]);
-      out.push(`  ${slot}: ${rec.join(", ")}`);
-    }
+let critGear=0, evaGear=0, drGear=0;
+for(const slot in rules.slots){
+  const rec = recommendStatsForSlot(slot, rules, focus, gearTier, critGear, evaGear, drGear);
+  const vals = rules.capValues;
+  if(rec.includes("Crit Chance"))      critGear = Math.min(CRIT_CAP, critGear + vals["Crit Chance"][gearTier]);
+  if(rec.includes("Evasion"))          evaGear  = Math.min(EVA_CAP,  evaGear  + vals["Evasion"][gearTier]);
+  if(rec.includes("Damage Reduction")) drGear   = Math.min(DR_CAP,   drGear   + vals["Damage Reduction"][gearTier]);
+
+  gearHtml += `
+    <div style="margin-bottom:14px">
+      <strong>${slot}</strong>
+      <ul style="margin:6px 0 0 18px;padding:0">
+        ${rec.map(l=>{
+          if(l.startsWith("Purple:")){
+            return `<li><span style="background:#7c3aed;color:white;padding:2px 6px;border-radius:6px;font-size:12px">${l.replace("Purple: ","")}</span> (5th)</li>`;
+          }
+          return `<li>${l}</li>`;
+        }).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+gearHtml += `</div></div>`;
+document.querySelector("main").insertAdjacentHTML("beforeend", gearHtml);
 
     const secretCrit = pct(document.getElementById('secretCrit').value);
     const secretEva  = pct(document.getElementById('secretEva').value);
