@@ -35,64 +35,65 @@
         <option value="Sorcerer">Sorcerer</option>
       </select>
 
-     <!-- Focus -->
-<label>Focus:</label>
-<select id="focus">
-  <option value="DPS">DPS</option>
-  <option value="Tank">Tank</option>
-</select>
-<br><br>
+      <!-- Focus -->
+      <label>Focus:</label>
+      <select id="focus">
+        <option value="DPS">DPS</option>
+        <option value="Tank">Tank</option>
+      </select>
+      <br><br>
 
-<!-- Characteristic -->
-<label>Characteristic:</label>
-<select id="charType">
-  <option value="0">None (0%)</option>
-  <option value="7">Heroic (+7%)</option>
-  <option value="10">Swift (+10%)</option>
-</select>
-<br><br>
+      <!-- Characteristic -->
+      <label>Characteristic:</label>
+      <select id="charType">
+        <option value="0">None (0%)</option>
+        <option value="7">Heroic (+7%)</option>
+        <option value="10">Swift (+10%)</option>
+      </select>
+      <br><br>
 
-<!-- Stat Colour -->
-<label>Stat Colour (ATK SPD):</label>
-<select id="statColor">
-  <option value="0">White (0%)</option>
-  <option value="10">Blue (10%)</option>
-  <option value="20">Orange (20%)</option>
-  <option value="30">Purple (30%)</option>
-</select>
-<br><br>
+      <!-- Stat Colour -->
+      <label>Stat Colour (ATK SPD):</label>
+      <select id="statColor">
+        <option value="0">White (0%)</option>
+        <option value="10">Blue (10%)</option>
+        <option value="20">Orange (20%)</option>
+        <option value="30">Purple (30%)</option>
+      </select>
+      <br><br>
 
-<!-- Secret Tech -->
-<label>Secret Tech:</label>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-  <div>
-    <span>ATK SPD</span><br>
-    <input id="secret" type="number" value="0" step="0.1"> %
-  </div>
-  <div>
-    <span>Crit Chance</span><br>
-    <input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %
-  </div>
-  <div>
-    <span>Evasion</span><br>
-    <input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %
-  </div>
-</div>
-<br><br>
+      <!-- Secret Tech -->
+      <label>Secret Tech:</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+        <div>
+          <span>ATK SPD</span><br>
+          <input id="secret" type="number" value="0" step="0.1"> %
+        </div>
+        <div>
+          <span>Crit Chance</span><br>
+          <input id="secretCrit" type="number" value="0" step="1" min="0" max="10"> %
+        </div>
+        <div>
+          <span>Evasion</span><br>
+          <input id="secretEva" type="number" value="0" step="1" min="0" max="10"> %
+        </div>
+      </div>
+      <br><br>
 
-<!-- Guild Buffs -->
-<label>Guild Buffs:</label>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
-  <div>
-    <span>ATK SPD</span><br>
-    <input id="guild" type="number" value="5" step="0.1"> %
-  </div>
-  <div>
-    <span>Crit Chance</span><br>
-    <input id="guildCrit" type="number" value="0" step="0.1"> %
-  </div>
-</div>
-<br><br>
+      <!-- Guild Buffs -->
+      <label>Guild Buffs:</label>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+        <div>
+          <span>ATK SPD</span><br>
+          <input id="guild" type="number" value="5" step="0.1"> %
+        </div>
+        <div>
+          <span>Crit Chance</span><br>
+          <input id="guildCrit" type="number" value="0" step="0.1"> %
+        </div>
+      </div>
+      <br><br>
+
       <label>Rune ATK SPD (%):</label>
       <input id="rune" type="number" value="0" step="0.1">
 
@@ -134,13 +135,9 @@
 
 <script>
 const gearRules = {
-  caps:{crit:0.50,eva:0.40,dr:0.88},
-  values:{
-    crit:{Primal:0.12,Original:0.12,Chaos:0.14,Abyss:0.16},
-    eva:{Primal:0.10,Original:0.10,Chaos:0.12,Abyss:0.14},
-    dr:{Primal:0.12,Original:0.12,Chaos:0.14,Abyss:0.16}
-  }
+  caps:{crit:0.50,eva:0.40,dr:0.88}
 };
+
 const baseOriginal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
 const basePrimal={"Berserker":2.0,"Paladin":2.4,"Ranger":1.8,"Sorcerer":2.2};
 const basePvP={"Berserker":2.2,"Paladin":2.5,"Ranger":2.0,"Sorcerer":2.3};
@@ -202,17 +199,22 @@ const clsEl=document.getElementById("cls");
 const focusEl=document.getElementById("focus");
 const weapEl=document.getElementById("weap");
 const gearTierEl=document.getElementById("gearTier");
+
 const guildEl=document.getElementById("guild");
 const guildCritEl=document.getElementById("guildCrit");
+
 const secretAtkEl=document.getElementById("secret");
 const secretCritEl=document.getElementById("secretCrit");
 const secretEvaEl=document.getElementById("secretEva");
+
 const runeEl=document.getElementById("rune");
 const petEl=document.getElementById("pet");
 const quickenEl=document.getElementById("quicken");
+
 const charTypeEl=document.getElementById("charType");
 const statColorEl=document.getElementById("statColor");
 const furyEl=document.getElementById("fury");
+
 const calcResult=document.getElementById("calcResult");
 const output=document.getElementById("output");
 const statBreakdown=document.getElementById("statBreakdown");
