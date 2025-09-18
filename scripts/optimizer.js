@@ -246,10 +246,15 @@ const statColorPct = pct(document.getElementById("statColor").value);
     const fury       = document.getElementById('fury').checked;
 
     // State WITHOUT gear/rune baked into non-gear (we pass includeGearRune:false)
-    const s0 = currentState({
-      cls, weaponTier, furyChecked:fury, quickPct,
-      guildPct, secretAtkPct:secretAtk, runePct:0, petPct, charAtkPct,
-      includeGearRune:false
+    const charTypePct  = pct(document.getElementById("charType").value);
+const statColorPct = pct(document.getElementById("statColor").value);
+
+const s0 = currentState({
+  cls, weaponTier, furyChecked:fury, quickPct,
+  guildPct, secretAtkPct:secretAtk, runePct:0, petPct,
+  charTypePct, statColorPct,
+  includeGearRune:false
+});
     });
 
     const combos = planCombos(cls, weaponTier, gearTier, s0.nonGearBuffs, s0.furyMul);
